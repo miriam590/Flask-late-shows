@@ -4,7 +4,7 @@ from models import db, Episode, Guest, Appearance
 
 app = Flask(__name__)
 
-
+# Configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -33,6 +33,14 @@ def get_episode_by_id(id):
 def get_guests():
     guests = Guest.query.all()
     return jsonify([guest.to_dict() for guest in guests])
+
+
+@app.route('/guests/<int:guest_id>', methods=['GET'])
+def get_guest_by_id(guest_id):
+    guest = Guest.query.get(guest_id)
+    if not guest:
+        return jsonify({"error": "Guest not found"}), 404
+    return jsonify(guest.to_dict()), 200
 
 
 @app.route('/appearances', methods=['POST'])
@@ -80,7 +88,9 @@ def create_appearance():
             }
         }), 201
 
-    except Exception :
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception:
         return jsonify({"errors": ["validation errors"]}), 400
 
 
